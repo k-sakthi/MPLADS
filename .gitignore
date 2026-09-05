@@ -1,0 +1,14 @@
+backend/venv/
+backend/.env
+backend/mplads.db
+backend/__pycache__/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+.env
+.env.*
+.DS_Store
+mplads.db
+test_env/
+verify_ui.py
