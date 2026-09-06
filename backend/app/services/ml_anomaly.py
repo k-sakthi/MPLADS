@@ -33,13 +33,40 @@ class MLAnomalyDetector:
             
         global _ML_CACHE, _ML_CACHE_LOCK
         cache_key = f"ml_anomalies_{len(df)}"
+        now = time.time()
         
-        with _ML_CACHE_LOCK:
-            now = time.time()
-            if cache_key in _ML_CACHE and now - _ML_CACHE[cache_key]['time'] < _ML_CACHE_TTL:
+        # Fast path: read without locking
+        if cache_key in _ML_CACHE:
+            if now - _ML_CACHE[cache_key]['time'] < _ML_CACHE_TTL:
+                return _ML_CACHE[cache_key]['data'].copy()
+            else:
+                # Stale cache: Return old data instantly, spawn background thread to update
+                if _ML_CACHE_LOCK.acquire(blocking=False):
+                    try:
+                        threading.Thread(target=self._train_and_cache_bg, args=(df.copy(), cache_key)).start()
+                    except Exception as e:
+                        _ML_CACHE_LOCK.release()
+                        logger.error(f"Failed to start background ML thread: {e}")
                 return _ML_CACHE[cache_key]['data'].copy()
 
-            # --- START ML EXECUTION UNDER LOCK ---
+        # No cache exists (first load): block and compute
+        with _ML_CACHE_LOCK:
+            # Double check
+            if cache_key in _ML_CACHE:
+                return _ML_CACHE[cache_key]['data'].copy()
+            
+            return self._train_and_cache(df, cache_key)
+
+    def _train_and_cache_bg(self, df: pd.DataFrame, cache_key: str):
+        try:
+            self._train_and_cache(df, cache_key)
+        except Exception as e:
+            logger.error(f"Background ML training failed: {e}")
+        finally:
+            _ML_CACHE_LOCK.release()
+
+    def _train_and_cache(self, df: pd.DataFrame, cache_key: str) -> pd.DataFrame:
+        try:
             # Prepare features
             X = df[self.features].copy()
             
@@ -121,4 +148,7 @@ class MLAnomalyDetector:
                 'data': df.copy()
             }
     
+            return df
+        except Exception as e:
+            logger.error(f"ML training error: {e}")
             return df

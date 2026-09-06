@@ -37,16 +37,18 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch lightweight dashboard summary
-      const sumRes = await fetch(`${API_URL}/api/analytics/dashboard-summary`);
-      if (sumRes.ok) {
-        setSummary(await sumRes.json());
-      }
+      // Execute fetches concurrently
+      const [sumResult, anomaliesResult] = await Promise.allSettled([
+        fetch(`${API_URL}/api/analytics/dashboard-summary`),
+        fetch(`${API_URL}/api/analytics/anomalies?limit=4`)
+      ]);
 
-      // Fetch anomalies preview
-      const anomaliesRes = await fetch(`${API_URL}/api/analytics/anomalies?limit=4`);
-      if (anomaliesRes.ok) {
-        const data = await anomaliesRes.json();
+      if (sumResult.status === 'fulfilled' && sumResult.value.ok) {
+        setSummary(await sumResult.value.json());
+      }
+      
+      if (anomaliesResult.status === 'fulfilled' && anomaliesResult.value.ok) {
+        const data = await anomaliesResult.value.json();
         setAnomalies(data.data || []);
       }
     } catch (e) {
