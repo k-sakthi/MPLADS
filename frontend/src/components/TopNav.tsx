@@ -16,7 +16,9 @@ export function TopNav() {
     setMounted(true);
     const fetchStatus = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/data/status');
+        const res = await fetch('http://localhost:8000/api/data/status', {
+          cache: 'no-store'
+        });
         if (res.ok) {
           const data = await res.json();
           setStatus(data);

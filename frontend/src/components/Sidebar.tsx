@@ -43,7 +43,7 @@ export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   return (
-    <aside className={`border-r border-border bg-card/80 backdrop-blur-xl flex flex-col h-full sticky top-0 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}>
+    <aside className={`border-r border-border bg-card/80 backdrop-blur-xl flex flex-col h-full sticky top-0 z-50 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}>
       <div className="p-6 relative">
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -54,12 +54,16 @@ export function Sidebar() {
           </svg>
         </button>
         <div className={`flex items-center space-x-3 mb-1 ${isCollapsed ? 'justify-center' : ''}`}>
-          <div className="w-8 h-8 min-w-8 bg-gradient-to-br from-primary to-cyan-400 rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
-            <ShieldAlert className="w-4 h-4 text-white" />
+          <div className="w-10 h-10 min-w-[40px] bg-white rounded-full flex items-center justify-center shadow-md p-1 border border-border">
+            <img src="/ashoka-lion.svg" alt="Ashoka Lion Capital" className="w-full h-full object-contain" />
           </div>
-          {!isCollapsed && <h1 className="text-sm font-bold tracking-tight text-foreground uppercase whitespace-nowrap overflow-hidden">MPLADS Intelligence</h1>}
+          {!isCollapsed && (
+            <div className="flex flex-col overflow-hidden">
+              <h1 className="text-xs font-bold tracking-tight text-foreground uppercase whitespace-nowrap truncate">MPLADS Intelligence System</h1>
+              <p className="text-[8px] text-muted-foreground uppercase tracking-widest whitespace-nowrap truncate">Monitor · Analyze · Ensure Impact</p>
+            </div>
+          )}
         </div>
-        {!isCollapsed && <p className="text-[10px] text-muted-foreground uppercase tracking-widest pl-11 whitespace-nowrap overflow-hidden">Sentinel AI Platform</p>}
       </div>
 
       <nav className="flex-1 px-4 space-y-1 mt-2 overflow-y-auto">
