@@ -187,6 +187,7 @@ class AnalyticsEngine:
     def get_works_database(self) -> pd.DataFrame:
         """
         Creates a unified Works dataframe by joining Recommended, Sanctioned, Completed, and Expenditure on WORK_RECOMMENDATION_DTL_ID.
+        Uses a robust concatenation and aggregation approach to prevent data loss if a table is partially fetched.
         """
         cache_key = "works_db"
         now = time.time()
@@ -202,53 +203,67 @@ class AnalyticsEngine:
             exp_records = self.db.execute(select(Expenditure.raw_data)).scalars().all()
             comp_records = self.db.execute(select(WorkCompleted.raw_data)).scalars().all()
 
-        if not rec_records:
-            return pd.DataFrame()
-
-        df_rec = pd.DataFrame(rec_records)
+        df_rec = pd.DataFrame(rec_records) if rec_records else pd.DataFrame()
         df_sanc = pd.DataFrame(sanc_records) if sanc_records else pd.DataFrame()
         df_exp = pd.DataFrame(exp_records) if exp_records else pd.DataFrame()
         df_comp = pd.DataFrame(comp_records) if comp_records else pd.DataFrame()
 
-        # Ensure WORK_RECOMMENDATION_DTL_ID exists
-        if 'WORK_RECOMMENDATION_DTL_ID' not in df_rec.columns:
-            return pd.DataFrame()
+        all_dfs = []
+        
+        # Process Recommended
+        if not df_rec.empty and 'WORK_RECOMMENDATION_DTL_ID' in df_rec.columns:
+            cols_rec = ['WORK_RECOMMENDATION_DTL_ID', 'MP_NAME', 'STATE_NAME', 'CONSTITUENCY', 
+                        'WORK_CATEGORY', 'ACTIVITY_NAME', 'WORK_DESCRIPTION', 'RECOMMENDED_AMOUNT', 'RECOMMENDATION_DATE']
+            df1 = df_rec[[c for c in cols_rec if c in df_rec.columns]].copy()
+            df1 = df1.groupby('WORK_RECOMMENDATION_DTL_ID').first().reset_index()
+            all_dfs.append(df1)
 
-        # Extract base Recommended columns
-        cols_rec = ['WORK_RECOMMENDATION_DTL_ID', 'MP_NAME', 'STATE_NAME', 'CONSTITUENCY', 
-                    'WORK_CATEGORY', 'ACTIVITY_NAME', 'WORK_DESCRIPTION', 'RECOMMENDED_AMOUNT', 'RECOMMENDATION_DATE']
-        # Only keep cols that actually exist in df_rec
-        cols_rec = [c for c in cols_rec if c in df_rec.columns]
-        master_df = df_rec[cols_rec].copy()
-
-        # Drop duplicates based on the ID just in case
-        master_df.drop_duplicates(subset=['WORK_RECOMMENDATION_DTL_ID'], inplace=True)
-
-        # Merge Sanctioned
+        # Process Sanctioned
         if not df_sanc.empty and 'WORK_RECOMMENDATION_DTL_ID' in df_sanc.columns:
-            cols_sanc = ['WORK_RECOMMENDATION_DTL_ID', 'SANCTION_AMOUNT', 'SANCTION_DATE', 'WORK_STAGE']
-            cols_sanc = [c for c in cols_sanc if c in df_sanc.columns]
-            sanc_subset = df_sanc[cols_sanc].drop_duplicates(subset=['WORK_RECOMMENDATION_DTL_ID'])
-            master_df = pd.merge(master_df, sanc_subset, on='WORK_RECOMMENDATION_DTL_ID', how='left')
+            cols_sanc = ['WORK_RECOMMENDATION_DTL_ID', 'MP_NAME', 'STATE_NAME', 'CONSTITUENCY', 
+                        'WORK_CATEGORY', 'ACTIVITY_NAME', 'WORK_DESCRIPTION', 'SANCTION_AMOUNT', 'SANCTION_DATE', 'WORK_STAGE']
+            df2 = df_sanc[[c for c in cols_sanc if c in df_sanc.columns]].copy()
+            df2 = df2.groupby('WORK_RECOMMENDATION_DTL_ID').first().reset_index()
+            all_dfs.append(df2)
 
-        # Merge Expenditure
+        # Process Expenditure
         if not df_exp.empty and 'WORK_RECOMMENDATION_DTL_ID' in df_exp.columns:
-            cols_exp = ['WORK_RECOMMENDATION_DTL_ID', 'FUND_DISBURSED_AMT', 'EXPENDITURE_DATE', 'WORK_STATUS']
-            cols_exp = [c for c in cols_exp if c in df_exp.columns]
-            # Aggregate expenditure by WORK_RECOMMENDATION_DTL_ID in case of multiple payments
-            exp_subset = df_exp[cols_exp].groupby('WORK_RECOMMENDATION_DTL_ID').agg({
-                'FUND_DISBURSED_AMT': 'sum',
-                'EXPENDITURE_DATE': 'last', # take latest date if multiple
-                'WORK_STATUS': 'last'
-            }).reset_index()
-            master_df = pd.merge(master_df, exp_subset, on='WORK_RECOMMENDATION_DTL_ID', how='left')
-
-        # Merge Completed
+            cols_exp = ['WORK_RECOMMENDATION_DTL_ID', 'MP_NAME', 'STATE_NAME', 'CONSTITUENCY', 
+                        'ACTIVITY_NAME', 'FUND_DISBURSED_AMT', 'EXPENDITURE_DATE', 'WORK_STATUS']
+            df3 = df_exp[[c for c in cols_exp if c in df_exp.columns]].copy()
+            # Aggregate multiple disbursements for the same work
+            agg_dict = {'FUND_DISBURSED_AMT': 'sum'}
+            for c in df3.columns:
+                if c not in ['WORK_RECOMMENDATION_DTL_ID', 'FUND_DISBURSED_AMT']:
+                    agg_dict[c] = 'last'
+            df3 = df3.groupby('WORK_RECOMMENDATION_DTL_ID').agg(agg_dict).reset_index()
+            all_dfs.append(df3)
+            
+        # Process Completed
         if not df_comp.empty and 'WORK_RECOMMENDATION_DTL_ID' in df_comp.columns:
-            cols_comp = ['WORK_RECOMMENDATION_DTL_ID', 'ACTUAL_AMOUNT', 'ACTUAL_END_DATE', 'WORK_ID']
-            cols_comp = [c for c in cols_comp if c in df_comp.columns]
-            comp_subset = df_comp[cols_comp].drop_duplicates(subset=['WORK_RECOMMENDATION_DTL_ID'])
-            master_df = pd.merge(master_df, comp_subset, on='WORK_RECOMMENDATION_DTL_ID', how='left')
+            cols_comp = ['WORK_RECOMMENDATION_DTL_ID', 'MP_NAME', 'STATE_NAME', 'CONSTITUENCY', 
+                        'WORK_CATEGORY', 'ACTIVITY_NAME', 'WORK_DESCRIPTION', 'ACTUAL_AMOUNT', 'ACTUAL_END_DATE', 'WORK_ID']
+            df4 = df_comp[[c for c in cols_comp if c in df_comp.columns]].copy()
+            df4 = df4.groupby('WORK_RECOMMENDATION_DTL_ID').first().reset_index()
+            all_dfs.append(df4)
+
+        if not all_dfs:
+            return pd.DataFrame()
+            
+        # Combine everything vertically
+        combined = pd.concat(all_dfs, ignore_index=True)
+        
+        # Aggregate back to one row per WORK_RECOMMENDATION_DTL_ID
+        agg_dict_final = {}
+        for col in combined.columns:
+            if col == 'WORK_RECOMMENDATION_DTL_ID':
+                continue
+            elif col in ['RECOMMENDED_AMOUNT', 'SANCTION_AMOUNT', 'FUND_DISBURSED_AMT', 'ACTUAL_AMOUNT']:
+                agg_dict_final[col] = 'max' # Numeric amounts come from their distinct source tables
+            else:
+                agg_dict_final[col] = 'first' # Take first available descriptive string
+                
+        master_df = combined.groupby('WORK_RECOMMENDATION_DTL_ID').agg(agg_dict_final).reset_index()
 
         # Fill NaNs where appropriate
         numeric_cols = ['RECOMMENDED_AMOUNT', 'SANCTION_AMOUNT', 'FUND_DISBURSED_AMT', 'ACTUAL_AMOUNT']
