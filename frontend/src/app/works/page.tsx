@@ -1,4 +1,6 @@
 "use client";
+import { API_URL } from '@/lib/api';
+
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -57,7 +59,7 @@ export default function WorksPage() {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/analytics/works/summary');
+        const res = await fetch(`${API_URL}/api/analytics/works/summary`);
         if (res.ok) setSummary(await res.json());
       } catch(e) {
         console.error(e);
@@ -80,7 +82,7 @@ export default function WorksPage() {
       if (stateFilter) query.append("state", stateFilter);
       if (statusFilter) query.append("status", statusFilter);
 
-      const res = await fetch(`http://localhost:8000/api/analytics/works?${query}`);
+      const res = await fetch(`${API_URL}/api/analytics/works?${query}`);
       if (res.ok) {
         const data = await res.json();
         setWorks(data.data || []);

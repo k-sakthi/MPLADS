@@ -1,3 +1,4 @@
+import { API_URL } from '@/lib/api';
 import React from "react";
 import { AuditClient } from "./AuditClient";
 import { ShieldCheck } from "lucide-react";
@@ -9,7 +10,7 @@ export const metadata = {
 
 async function fetchData(endpoint: string) {
   try {
-    const res = await fetch(`http://127.0.0.1:8000/api/audit/${endpoint}`, { cache: "no-store" });
+    const res = await fetch(`${API_URL}/api/audit/${endpoint}`, { cache: "no-store" });
     if (!res.ok) return null;
     return res.json();
   } catch { return null; }

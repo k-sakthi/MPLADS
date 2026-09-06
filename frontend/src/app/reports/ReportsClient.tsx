@@ -1,4 +1,6 @@
 "use client";
+import { API_URL } from '@/lib/api';
+
 
 import React, { useState } from "react";
 import { Download, FileText, CheckCircle, Database, Calendar } from "lucide-react";
@@ -15,7 +17,7 @@ export function ReportsClient({
   const [activeTab, setActiveTab] = useState<"NATIONAL" | "DECISION_SUPPORT">("NATIONAL");
 
   const handleExportCSV = async () => {
-    const url = `http://127.0.0.1:8000/api/reports/export?report_type=${activeTab}`;
+    const url = `${API_URL}/api/reports/export?report_type=${activeTab}`;
     window.open(url, "_blank");
   };
 

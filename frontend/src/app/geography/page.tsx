@@ -1,3 +1,4 @@
+import { API_URL } from '@/lib/api';
 import React, { Suspense } from "react";
 import { GeographyClient } from "./GeographyClient";
 import { Map, TrendingUp, AlertTriangle, Building, Briefcase } from "lucide-react";
@@ -8,13 +9,13 @@ export const metadata = {
 };
 
 async function getSummaryData() {
-  const res = await fetch("http://127.0.0.1:8000/api/analytics/geography/summary", { cache: "no-store" });
+  const res = await fetch(`${API_URL}/api/analytics/geography/summary`, { cache: "no-store" });
   if (!res.ok) return null;
   return res.json();
 }
 
 async function getStatesData() {
-  const res = await fetch("http://127.0.0.1:8000/api/analytics/geography/states", { cache: "no-store" });
+  const res = await fetch(`${API_URL}/api/analytics/geography/states`, { cache: "no-store" });
   if (!res.ok) return { data: [] };
   return res.json();
 }

@@ -1,4 +1,6 @@
 "use client";
+import { API_URL } from '@/lib/api';
+
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,7 +47,7 @@ export function AuditClient({
   const fetchExceptions = async () => {
     setLoading(true);
     try {
-      const url = new URL("http://127.0.0.1:8000/api/audit");
+      const url = new URL(`${API_URL}/api/audit`);
       url.searchParams.append("limit", "50");
       url.searchParams.append("offset", "0");
       if (filterCategory !== "ALL") url.searchParams.append("category", filterCategory);
@@ -54,7 +56,7 @@ export function AuditClient({
       
       const [exRes, sumRes] = await Promise.all([
         fetch(url.toString()),
-        fetch("http://127.0.0.1:8000/api/audit/summary")
+        fetch(`${API_URL}/api/audit/summary`)
       ]);
       
       if (exRes.ok) {
@@ -74,7 +76,7 @@ export function AuditClient({
 
   const updateStatus = async (id: number, newStatus: string) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/audit/${id}/status`, {
+      const res = await fetch(`${API_URL}/api/audit/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus })
@@ -86,7 +88,7 @@ export function AuditClient({
   const generateAudit = async () => {
     setGenerating(true);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/audit/generate`, { method: "POST" });
+      const res = await fetch(`${API_URL}/api/audit/generate`, { method: "POST" });
       if (res.ok) {
         // Refresh page to get latest trends and summary
         window.location.reload();

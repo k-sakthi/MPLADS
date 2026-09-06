@@ -1,4 +1,6 @@
 "use client";
+import { API_URL } from '@/lib/api';
+
 
 import React, { useEffect, useState, useRef } from "react";
 import { Bell } from "lucide-react";
@@ -13,7 +15,7 @@ export function NotificationBell() {
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/alerts?status=OPEN&limit=5");
+        const res = await fetch(`${API_URL}/api/alerts?status=OPEN&limit=5`);
         if (res.ok) {
           const data = await res.json();
           setAlerts(data.alerts || []);

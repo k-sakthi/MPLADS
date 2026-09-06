@@ -1,4 +1,6 @@
 "use client";
+import { API_URL } from '@/lib/api';
+
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -36,13 +38,13 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     try {
       // Fetch lightweight dashboard summary
-      const sumRes = await fetch('http://localhost:8000/api/analytics/dashboard-summary');
+      const sumRes = await fetch(`${API_URL}/api/analytics/dashboard-summary`);
       if (sumRes.ok) {
         setSummary(await sumRes.json());
       }
 
       // Fetch anomalies preview
-      const anomaliesRes = await fetch('http://localhost:8000/api/analytics/anomalies?limit=4');
+      const anomaliesRes = await fetch(`${API_URL}/api/analytics/anomalies?limit=4`);
       if (anomaliesRes.ok) {
         const data = await anomaliesRes.json();
         setAnomalies(data.data || []);

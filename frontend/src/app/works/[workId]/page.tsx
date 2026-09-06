@@ -1,4 +1,6 @@
 "use client";
+import { API_URL } from '@/lib/api';
+
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -54,7 +56,7 @@ export default function WorkProfilePage() {
   useEffect(() => {
     const fetchWorkData = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/analytics/works/${encodeURIComponent(workId)}`);
+        const res = await fetch(`${API_URL}/api/analytics/works/${encodeURIComponent(workId)}`);
         if (!res.ok) throw new Error("Not found");
         const json = await res.json();
         setData(json);

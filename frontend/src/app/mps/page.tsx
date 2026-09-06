@@ -1,4 +1,6 @@
 "use client";
+import { API_URL } from '@/lib/api';
+
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -65,7 +67,7 @@ export default function MPSPage() {
       if (stateFilter) query.append("state", stateFilter);
       if (houseFilter && houseFilter !== 'All') query.append("house", houseFilter);
 
-      const res = await fetch(`http://localhost:8000/api/analytics/mps?${query}`);
+      const res = await fetch(`${API_URL}/api/analytics/mps?${query}`);
       if (res.ok) {
         const data = await res.json();
         setMps(data.data || []);

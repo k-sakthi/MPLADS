@@ -1,4 +1,6 @@
 "use client";
+import { API_URL } from '@/lib/api';
+
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -64,7 +66,7 @@ export function IntelligenceClient({
     if (trendsLoaded) return;
     setTrendLoading(true);
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/analytics/intelligence/trends");
+      const res = await fetch(`${API_URL}/api/analytics/intelligence/trends`);
       const data = await res.json();
       setTrendData(data);
       setTrendsLoaded(true);

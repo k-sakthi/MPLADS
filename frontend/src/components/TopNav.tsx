@@ -1,4 +1,6 @@
 "use client";
+import { API_URL } from '@/lib/api';
+
 
 import React, { useEffect, useState } from "react";
 import { Search, Clock, RefreshCw, CheckCircle2, Moon, Sun } from "lucide-react";
@@ -16,7 +18,7 @@ export function TopNav() {
     setMounted(true);
     const fetchStatus = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/data/status', {
+        const res = await fetch(`${API_URL}/api/data/status`, {
           cache: 'no-store'
         });
         if (res.ok) {

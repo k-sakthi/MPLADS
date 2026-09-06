@@ -1,4 +1,6 @@
 "use client";
+import { API_URL } from '@/lib/api';
+
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -27,7 +29,7 @@ export function ConstituencyDrilldown({ stateName }: { stateName: string }) {
     let isMounted = true;
     setLoading(true);
 
-    fetch(`http://127.0.0.1:8000/api/analytics/geography/constituencies?state=${encodeURIComponent(stateName)}`)
+    fetch(`${API_URL}/api/analytics/geography/constituencies?state=${encodeURIComponent(stateName)}`)
       .then(res => res.json())
       .then(json => {
         if (isMounted) {

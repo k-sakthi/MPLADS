@@ -1,9 +1,10 @@
+import { API_URL } from '@/lib/api';
 import React from "react";
 import { Database, Server, RefreshCw, FileText, CheckCircle2 } from "lucide-react";
 
 async function getDataProfiles() {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/data/profile", { cache: "no-store" });
+    const res = await fetch(`${API_URL}/api/data/profile`, { cache: "no-store" });
     if (!res.ok) return [];
     return await res.json();
   } catch (error) {
@@ -13,7 +14,7 @@ async function getDataProfiles() {
 
 async function getStatus() {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/data/status", { cache: "no-store" });
+    const res = await fetch(`${API_URL}/api/data/status`, { cache: "no-store" });
     if (!res.ok) return null;
     return await res.json();
   } catch (error) {

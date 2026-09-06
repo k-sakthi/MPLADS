@@ -1,4 +1,6 @@
 "use client";
+import { API_URL } from '@/lib/api';
+
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -36,10 +38,10 @@ export default function ExpenditurePage() {
     const fetchAll = async () => {
       try {
         const [sumRes, distRes, stateRes, topRes] = await Promise.all([
-          fetch('http://localhost:8000/api/analytics/expenditure/summary'),
-          fetch('http://localhost:8000/api/analytics/expenditure/distribution'),
-          fetch('http://localhost:8000/api/analytics/expenditure/states'),
-          fetch('http://localhost:8000/api/analytics/expenditure/top-works?limit=10')
+          fetch(`${API_URL}/api/analytics/expenditure/summary`),
+          fetch(`${API_URL}/api/analytics/expenditure/distribution`),
+          fetch(`${API_URL}/api/analytics/expenditure/states`),
+          fetch(`${API_URL}/api/analytics/expenditure/top-works?limit=10`)
         ]);
         
         if (sumRes.ok) setSummary(await sumRes.json());

@@ -1,4 +1,6 @@
 "use client";
+import { API_URL } from '@/lib/api';
+
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -46,7 +48,7 @@ export function AlertsClient({
   const fetchAlerts = async () => {
     setLoading(true);
     try {
-      const url = new URL("http://127.0.0.1:8000/api/alerts");
+      const url = new URL(`${API_URL}/api/alerts`);
       url.searchParams.append("limit", "50");
       url.searchParams.append("offset", "0");
       if (filterPriority !== "ALL") url.searchParams.append("priority", filterPriority);
@@ -54,7 +56,7 @@ export function AlertsClient({
       
       const [alertRes, sumRes] = await Promise.all([
         fetch(url.toString()),
-        fetch("http://127.0.0.1:8000/api/alerts/summary")
+        fetch(`${API_URL}/api/alerts/summary`)
       ]);
       
       if (alertRes.ok) {
@@ -75,7 +77,7 @@ export function AlertsClient({
 
   const updateStatus = async (id: number, newStatus: string) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/alerts/${id}/status`, {
+      const res = await fetch(`${API_URL}/api/alerts/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus })

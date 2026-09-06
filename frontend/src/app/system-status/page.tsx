@@ -1,9 +1,10 @@
+import { API_URL } from '@/lib/api';
 import React from "react";
 import { Activity, Server, Database, ShieldCheck, HeartPulse, Clock, AlertTriangle } from "lucide-react";
 
 async function getStatus() {
   try {
-    const res = await fetch("http://127.0.0.1:8000/health", { cache: "no-store" });
+    const res = await fetch(`${API_URL}/health`, { cache: "no-store" });
     if (!res.ok) return null;
     return await res.json();
   } catch (error) {
